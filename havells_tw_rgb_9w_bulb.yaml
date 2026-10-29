@@ -1,0 +1,120 @@
+# ==============================================================
+# Havells 9W TW+RGB Wi-Fi Bulb
+# Base configuration for Beken CB2L (BP5758D LED Driver)
+# ==============================================================
+
+esphome:
+  name: "havellstwrgb"
+  friendly_name: "Havells 9W Bulb"
+
+# Board definition for the Beken chip used in this bulb
+bk72xx:
+  board: cb2l
+
+logger:
+web_server:
+  port: 80
+
+# ==============================================================
+# CORE INTEGRATIONS (Home Assistant, Wi-Fi, OTA)
+# Make sure to define these values in your secrets.yaml file!
+# ==============================================================
+api:
+  encryption:
+    key: !secret api_key
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  # Fallback hotspot if the bulb cannot connect to Wi-Fi
+  ap:
+    ssid: "HavellsBulb1"
+    password: !secret ap_password
+
+captive_portal:
+
+# ==============================================================
+# BLUETOOTH (Optional)
+# Uncomment these lines to use this bulb as a Bluetooth Proxy
+# for Home Assistant to detect nearby BLE devices.
+# ==============================================================
+# bk72xx_ble:
+# bk72xx_ble_tracker:
+# bluetooth_proxy:
+#   active: false
+
+# ==============================================================
+# LED DRIVER (BP5758D)
+# Controls the individual color channels and power output.
+# ==============================================================
+bp5758d:
+  clock_pin: P6
+  data_pin: P7
+
+output:
+  - platform: bp5758d
+    id: out_blue
+    channel: 1          
+    # Capped at 12mA for thermal safety to prevent melting
+    current: 12         
+  - platform: bp5758d
+    id: out_green
+    channel: 2          
+    current: 12         
+  - platform: bp5758d
+    id: out_red
+    channel: 3          
+    current: 12         
+  - platform: bp5758d
+    id: out_warm_white
+    channel: 4          
+    # Factory standard 30mA limit for white channels
+    current: 30         
+  - platform: bp5758d
+    id: out_cold_white
+    channel: 5          
+    current: 30         
+
+# ==============================================================
+# LIGHT ENTITY
+# Combines the outputs above into a single RGBWW light in HA.
+# ==============================================================
+light:
+  - platform: rgbww
+    id: rgbww_bulb_1
+    name: "RGBWW Bulb"
+    red: out_red
+    green: out_green
+    blue: out_blue
+    cold_white: out_cold_white
+    warm_white: out_warm_white
+    
+    # Factory color temperatures
+    cold_white_color_temperature: 6500 K
+    warm_white_color_temperature: 2700 K
+    
+    # Ensures RGB and White LEDs don't run at full power simultaneously
+    color_interlock: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    gamma_correct: 1.5
+    
+    # Included custom effects
+    effects:
+      - random:
+          name: "Random Cycle"
+      - lambda:
+          name: "Relaxing Rainbow"
+          update_interval: 1000ms    # Ticks once per second
+          lambda: |-
+            static float hue = 0.0;
+            auto call = id(rgbww_bulb_1).make_call();
+            float r, g, b;
+            hsv_to_rgb(hue, 1.0, 1.0, r, g, b);
+            call.set_rgb(r, g, b);
+            call.set_transition_length(1000); 
+            call.perform();
+            hue = (hue >= 360.0) ? 0.0 : hue + 5.0;
