@@ -1,6 +1,8 @@
-# Havells 9W TW+RGB Wi-Fi Bulb - ESPHome Configuration
+# Havells Glamax 9W TW+RGB B22 Wi-Fi Bulb - ESPHome Configuration
 
 This repository contains the ESPHome configuration for the **Havells 9W TW+RGB Wi-Fi Smart Bulb** (sold primarily in India), based on the Beken CB2L chipset.
+
+[Havells Glamax 9W B22 WiFi LED Smart Bulb with Music Sync Function, Compatible with Amazon Alexa and Google Assistant (16M Colours)](https://amazon.in/dp/B0D738FNB2)
 
 This configuration provides a complete foundation for integrating the bulb locally into Home Assistant or any other smart home platform using ESPHome, completely bypassing the proprietary cloud apps. 
 
